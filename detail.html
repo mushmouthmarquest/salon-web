@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>着物詳細</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #faf9f7;
+      color: #333;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e8e0d8;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #5c3d2e;
+      padding: 4px;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #5c3d2e;
+      letter-spacing: 0.05em;
+    }
+
+    .detail-img {
+      width: 100%;
+      max-width: 480px;
+      display: block;
+      margin: 0 auto;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+    }
+
+    .detail-body {
+      padding: 20px 16px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .detail-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #2c2c2c;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #f0e6dc;
+      color: #5c3d2e;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-bottom: 16px;
+    }
+
+    .detail-id {
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    .not-found {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="back-btn" onclick="history.back()">‹</button>
+    <h1>着物詳細</h1>
+  </header>
+
+  <div id="content"></div>
+
+  <script>
+    async function main() {
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
+
+      const res = await fetch('kimono.json');
+      const items = await res.json();
+      const item = items.find(i => i.id === id);
+
+      const content = document.getElementById('content');
+
+      if (!item) {
+        content.innerHTML = '<div class="not-found">着物が見つかりませんでした。</div>';
+        return;
+      }
+
+      document.title = item.name + ' | 着物レンタル';
+
+      content.innerHTML = `
+        <img class="detail-img" src="${item.image}" alt="${item.name}">
+        <div class="detail-body">
+          <div class="detail-name">${item.name}</div>
+          <span class="badge">${item.category}</span>
+          <div class="detail-id">品番：${item.id}</div>
+        </div>
+      `;
+    }
+
+    main();
+  </script>
+</body>
+</html>

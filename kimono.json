@@ -1,0 +1,20 @@
+[
+  {
+    "id": "KM-001",
+    "name": "振袖001",
+    "category": "振袖",
+    "image": "images/sample.png"
+  },
+  {
+    "id": "KM-002",
+    "name": "振袖002",
+    "category": "振袖",
+    "image": "images/sample.png"
+  },
+  {
+    "id": "KM-003",
+    "name": "振袖003",
+    "category": "振袖",
+    "image": "images/sample.png"
+  }
+]
