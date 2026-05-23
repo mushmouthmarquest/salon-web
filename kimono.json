@@ -1,20 +1,17 @@
 [
-  {
-    "id": "KM-001",
-    "name": "振袖001",
-    "category": "振袖",
-    "image": "images/sample.png"
-  },
-  {
-    "id": "KM-002",
-    "name": "振袖002",
-    "category": "振袖",
-    "image": "images/sample.png"
-  },
-  {
-    "id": "KM-003",
-    "name": "振袖003",
-    "category": "振袖",
-    "image": "images/sample.png"
-  }
+  { "id": "KM-001", "name": "振袖001", "category": "振袖", "image": "images/sample.png" },
+  { "id": "KM-002", "name": "振袖002", "category": "振袖", "image": "images/sample.png" },
+  { "id": "KM-003", "name": "振袖003", "category": "振袖", "image": "images/sample.png" },
+  { "id": "KM-004", "name": "訪問着001", "category": "訪問着", "image": "images/sample.png" },
+  { "id": "KM-005", "name": "訪問着002", "category": "訪問着", "image": "images/sample.png" },
+  { "id": "KM-006", "name": "訪問着003", "category": "訪問着", "image": "images/sample.png" },
+  { "id": "KM-007", "name": "色留袖001", "category": "色留袖", "image": "images/sample.png" },
+  { "id": "KM-008", "name": "色留袖002", "category": "色留袖", "image": "images/sample.png" },
+  { "id": "KM-009", "name": "色留袖003", "category": "色留袖", "image": "images/sample.png" },
+  { "id": "KM-010", "name": "黒留袖001", "category": "黒留袖", "image": "images/sample.png" },
+  { "id": "KM-011", "name": "黒留袖002", "category": "黒留袖", "image": "images/sample.png" },
+  { "id": "KM-012", "name": "黒留袖003", "category": "黒留袖", "image": "images/sample.png" },
+  { "id": "KM-013", "name": "浴衣001", "category": "浴衣", "image": "images/sample.png" },
+  { "id": "KM-014", "name": "浴衣002", "category": "浴衣", "image": "images/sample.png" },
+  { "id": "KM-015", "name": "浴衣003", "category": "浴衣", "image": "images/sample.png" }
 ]
