@@ -4,15 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>着物詳細</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #faf9f7;
-      color: #333;
+      font-family: 'Noto Sans JP', sans-serif;
+      background: #faf8f5;
+      color: #2c2c2c;
     }
 
+    /* ── ヘッダー ── */
     header {
       background: #fff;
       border-bottom: 1px solid #e8e0d8;
@@ -25,66 +29,94 @@
     .back-btn {
       background: none;
       border: none;
-      font-size: 1.2rem;
       cursor: pointer;
-      color: #5c3d2e;
-      padding: 4px;
+      color: #8b1a2f;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .back-btn::before {
+      content: '←';
+      font-size: 1rem;
     }
 
     header h1 {
-      font-size: 1.1rem;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 1rem;
       font-weight: 600;
-      color: #5c3d2e;
-      letter-spacing: 0.05em;
+      color: #2c2c2c;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── 詳細コンテンツ ── */
+    .detail-img-wrap {
+      position: relative;
+      max-width: 480px;
+      margin: 0 auto;
     }
 
     .detail-img {
       width: 100%;
-      max-width: 480px;
-      display: block;
-      margin: 0 auto;
       aspect-ratio: 3/4;
       object-fit: cover;
+      display: block;
+    }
+
+    .detail-img-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #b8963e, transparent);
     }
 
     .detail-body {
-      padding: 20px 16px;
+      padding: 24px 16px 40px;
       max-width: 480px;
       margin: 0 auto;
     }
 
-    .detail-name {
-      font-size: 1.3rem;
-      font-weight: 700;
+    .detail-category {
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      color: #b8963e;
       margin-bottom: 8px;
-      color: #2c2c2c;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      background: #f0e6dc;
-      color: #5c3d2e;
-      border-radius: 4px;
-      font-size: 0.8rem;
+    .detail-name {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #2c2c2c;
+      letter-spacing: 0.06em;
+      line-height: 1.6;
       margin-bottom: 16px;
     }
 
     .detail-id {
-      font-size: 0.8rem;
-      color: #999;
+      font-size: 0.75rem;
+      color: #bbb;
+      letter-spacing: 0.05em;
     }
 
     .not-found {
       text-align: center;
       padding: 60px 20px;
       color: #999;
+      font-family: 'Noto Serif JP', serif;
     }
   </style>
 </head>
 <body>
   <header>
-    <button class="back-btn" onclick="history.back()">‹</button>
+    <button class="back-btn" onclick="history.back()">一覧に戻る</button>
     <h1>着物詳細</h1>
   </header>
 
@@ -109,10 +141,12 @@
       document.title = item.name + ' | 着物レンタル';
 
       content.innerHTML = `
-        <img class="detail-img" src="${item.image}" alt="${item.name}">
+        <div class="detail-img-wrap">
+          <img class="detail-img" src="${item.image}" alt="${item.name}">
+        </div>
         <div class="detail-body">
+          <div class="detail-category">${item.category}</div>
           <div class="detail-name">${item.name}</div>
-          <span class="badge">${item.category}</span>
           <div class="detail-id">品番：${item.id}</div>
         </div>
       `;
