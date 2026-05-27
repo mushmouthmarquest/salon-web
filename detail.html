@@ -54,20 +54,25 @@
     }
 
     /* ── 詳細コンテンツ ── */
-    .detail-img-wrap {
-      position: relative;
+    .detail-gallery {
       max-width: 480px;
       margin: 0 auto;
+      position: relative;
+    }
+
+    .detail-main-wrap {
+      position: relative;
+      cursor: zoom-in;
     }
 
     .detail-img {
       width: 100%;
-      aspect-ratio: 3/4;
+      aspect-ratio: 1/1;
       object-fit: cover;
       display: block;
     }
 
-    .detail-img-wrap::after {
+    .detail-main-wrap::after {
       content: '';
       position: absolute;
       bottom: 0;
@@ -75,6 +80,64 @@
       right: 0;
       height: 2px;
       background: linear-gradient(90deg, transparent, #b8963e, transparent);
+    }
+
+    /* ── ライトボックス ── */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox-img {
+      max-width: 95vw;
+      max-height: 95vh;
+      object-fit: contain;
+      display: block;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .detail-thumbnails {
+      display: flex;
+      gap: 6px;
+      padding: 8px 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      background: #fff;
+    }
+
+    .detail-thumbnails::-webkit-scrollbar { display: none; }
+
+    .detail-thumb {
+      flex: 0 0 64px;
+      height: 64px;
+      object-fit: cover;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.15s;
+    }
+
+    .detail-thumb.active {
+      border-color: #8b1a2f;
     }
 
     .detail-body {
@@ -100,6 +163,17 @@
       margin-bottom: 16px;
     }
 
+    .detail-description {
+      font-size: 0.85rem;
+      color: #555;
+      line-height: 1.9;
+      white-space: pre-line;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      background: #f7f3ee;
+      border-left: 3px solid #b8963e;
+    }
+
     .detail-id {
       font-size: 0.75rem;
       color: #bbb;
@@ -122,7 +196,16 @@
 
   <div id="content"></div>
 
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">×</button>
+    <img class="lightbox-img" id="lightboxImg" src="" alt="">
+  </div>
+
   <script>
+    function esc(s) {
+      return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     async function main() {
       const params = new URLSearchParams(location.search);
       const id = params.get('id');
@@ -140,16 +223,65 @@
 
       document.title = item.name + ' | 着物レンタル';
 
+      const images = item.images && item.images.length ? item.images : [item.image];
+      const thumbsHtml = images.length > 1
+        ? `<div class="detail-thumbnails">
+            ${images.map((src, i) =>
+              `<img class="detail-thumb${i === 0 ? ' active' : ''}" src="${esc(src)}" alt="${esc(item.name)} ${i+1}">`
+            ).join('')}
+           </div>`
+        : '';
+      const descHtml = item.description
+        ? `<div class="detail-description">${esc(item.description)}</div>`
+        : '';
+
       content.innerHTML = `
-        <div class="detail-img-wrap">
-          <img class="detail-img" src="${item.image}" alt="${item.name}">
+        <div class="detail-gallery">
+          <div class="detail-main-wrap" id="mainWrap">
+            <img class="detail-img" id="mainImg" src="${esc(images[0])}" alt="${esc(item.name)}">
+          </div>
+          ${thumbsHtml}
         </div>
         <div class="detail-body">
-          <div class="detail-category">${item.category}</div>
-          <div class="detail-name">${item.name}</div>
-          <div class="detail-id">品番：${item.id}</div>
+          <div class="detail-category">${esc(item.category)}</div>
+          <div class="detail-name">${esc(item.name)}</div>
+          ${descHtml}
+          <div class="detail-id">品番：${esc(item.id)}</div>
         </div>
       `;
+
+      let currentIdx = 0;
+
+      // サムネイルクリックでメイン画像を切り替え
+      document.querySelectorAll('.detail-thumb').forEach((thumb, i) => {
+        thumb.addEventListener('click', () => {
+          currentIdx = i;
+          document.getElementById('mainImg').src = images[i];
+          document.querySelectorAll('.detail-thumb').forEach(t => t.classList.remove('active'));
+          thumb.classList.add('active');
+        });
+      });
+
+      // ライトボックス
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImg = document.getElementById('lightboxImg');
+
+      function openLightbox() {
+        lightboxImg.src = images[currentIdx];
+        lightboxImg.alt = item.name;
+        lightbox.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeLightbox() {
+        lightbox.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      document.getElementById('mainWrap').addEventListener('click', openLightbox);
+      document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+      lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
     }
 
     main();

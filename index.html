@@ -100,7 +100,7 @@
 
     .card img {
       width: 100%;
-      aspect-ratio: 3/4;
+      aspect-ratio: 1/1;
       object-fit: cover;
       display: block;
       transition: transform 0.5s ease;
@@ -135,6 +135,10 @@
   <div class="grid" id="grid"></div>
 
   <script>
+    function esc(s) {
+      return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     async function main() {
       const res = await fetch('kimono.json');
       const items = await res.json();
@@ -146,27 +150,33 @@
       let active = categories[0];
 
       function render() {
-        tabs.innerHTML = categories.map(c => `
-          <button class="tab ${c === active ? 'active' : ''}" onclick="setActive('${c}')">${c}</button>
-        `).join('');
+        tabs.innerHTML = '';
+        categories.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = 'tab' + (c === active ? ' active' : '');
+          btn.textContent = c;
+          btn.addEventListener('click', () => { active = c; render(); });
+          tabs.appendChild(btn);
+        });
 
         const filtered = items.filter(i => i.category === active);
         grid.innerHTML = filtered.map(item => `
-          <div class="card" onclick="location.href='detail.html?id=${item.id}'">
+          <div class="card" data-id="${esc(item.id)}">
             <div class="card-img-wrap">
-              <img src="${item.image}" alt="${item.name}" loading="lazy">
+              <img src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy">
             </div>
             <div class="card-body">
-              <div class="card-name">${item.name}</div>
+              <div class="card-name">${esc(item.name)}</div>
             </div>
           </div>
         `).join('');
-      }
 
-      window.setActive = function(cat) {
-        active = cat;
-        render();
-      };
+        grid.querySelectorAll('.card').forEach(card => {
+          card.addEventListener('click', () => {
+            location.href = 'detail.html?id=' + encodeURIComponent(card.dataset.id);
+          });
+        });
+      }
 
       render();
     }
