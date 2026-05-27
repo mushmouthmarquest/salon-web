@@ -278,10 +278,35 @@
         document.body.style.overflow = '';
       }
 
+      function showLightboxAt(idx) {
+        currentIdx = idx;
+        lightboxImg.src = images[currentIdx];
+        lightboxImg.alt = item.name;
+        document.querySelectorAll('.detail-thumb').forEach((t, i) => t.classList.toggle('active', i === currentIdx));
+        document.getElementById('mainImg').src = images[currentIdx];
+      }
+
       document.getElementById('mainWrap').addEventListener('click', openLightbox);
       document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
       lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
-      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+      // キーボード操作
+      document.addEventListener('keydown', e => {
+        if (!lightbox.classList.contains('open')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowRight') showLightboxAt((currentIdx + 1) % images.length);
+        if (e.key === 'ArrowLeft') showLightboxAt((currentIdx - 1 + images.length) % images.length);
+      });
+
+      // タッチスワイプ
+      let touchStartX = 0;
+      lightbox.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive: true});
+      lightbox.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) < 40) return;
+        if (dx < 0) showLightboxAt((currentIdx + 1) % images.length);
+        else showLightboxAt((currentIdx - 1 + images.length) % images.length);
+      });
     }
 
     main();
