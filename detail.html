@@ -132,12 +132,11 @@
       height: 64px;
       object-fit: cover;
       cursor: pointer;
-      border: 2px solid transparent;
-      transition: border-color 0.15s;
+      transition: box-shadow 0.15s;
     }
 
     .detail-thumb.active {
-      border-color: #8b1a2f;
+      box-shadow: inset 0 0 0 100px rgba(255,255,255,0.38);
     }
 
     .detail-body {
@@ -185,6 +184,20 @@
       padding: 60px 20px;
       color: #999;
       font-family: 'Noto Serif JP', serif;
+    }
+
+    /* ── メイン画像カウンター ── */
+    .main-counter {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      padding: 5px 10px;
+      border-radius: 20px;
+      pointer-events: none;
     }
 
     /* ── タップヒント ── */
@@ -289,6 +302,7 @@
         <div class="detail-gallery">
           <div class="detail-main-wrap" id="mainWrap">
             <img class="detail-img" id="mainImg" src="${esc(images[0])}" alt="${esc(item.name)}">
+            ${images.length > 1 ? `<div class="main-counter" id="mainCounter">1 / ${images.length}</div>` : ''}
             <div class="zoom-hint">🔍 タップで拡大</div>
           </div>
           ${thumbsHtml}
@@ -302,14 +316,18 @@
 
       let currentIdx = 0;
 
-      // サムネイルクリックでメイン画像を切り替え
+      // メイン画像・サムネイル・カウンターをまとめて更新
+      function switchMainImage(idx) {
+        currentIdx = idx;
+        document.getElementById('mainImg').src = images[currentIdx];
+        document.querySelectorAll('.detail-thumb').forEach((t, i) => t.classList.toggle('active', i === currentIdx));
+        const counter = document.getElementById('mainCounter');
+        if (counter) counter.textContent = `${currentIdx + 1} / ${images.length}`;
+      }
+
+      // サムネイルクリック
       document.querySelectorAll('.detail-thumb').forEach((thumb, i) => {
-        thumb.addEventListener('click', () => {
-          currentIdx = i;
-          document.getElementById('mainImg').src = images[i];
-          document.querySelectorAll('.detail-thumb').forEach(t => t.classList.remove('active'));
-          thumb.classList.add('active');
-        });
+        thumb.addEventListener('click', () => switchMainImage(i));
       });
 
       // ライトボックス
@@ -340,15 +358,32 @@
       }
 
       function showLightboxAt(idx) {
-        currentIdx = idx;
+        switchMainImage(idx);
         lightboxImg.src = images[currentIdx];
         lightboxImg.alt = item.name;
         updateLightboxUI();
-        document.querySelectorAll('.detail-thumb').forEach((t, i) => t.classList.toggle('active', i === currentIdx));
-        document.getElementById('mainImg').src = images[currentIdx];
       }
 
-      document.getElementById('mainWrap').addEventListener('click', openLightbox);
+      // メイン画像：スワイプで切替、タップでライトボックス
+      const mainWrap = document.getElementById('mainWrap');
+      let mainTouchX = 0;
+      let mainDidSwipe = false;
+      mainWrap.addEventListener('touchstart', e => {
+        mainTouchX = e.touches[0].clientX;
+        mainDidSwipe = false;
+      }, {passive: true});
+      mainWrap.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - mainTouchX;
+        if (Math.abs(dx) > 40 && images.length > 1) {
+          mainDidSwipe = true;
+          switchMainImage(dx < 0 ? (currentIdx + 1) % images.length : (currentIdx - 1 + images.length) % images.length);
+        }
+      });
+      mainWrap.addEventListener('click', () => {
+        if (mainDidSwipe) { mainDidSwipe = false; return; }
+        openLightbox();
+      });
+
       document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
       lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
       lightboxPrev.addEventListener('click', e => { e.stopPropagation(); showLightboxAt((currentIdx - 1 + images.length) % images.length); });
@@ -362,7 +397,7 @@
         if (e.key === 'ArrowLeft') showLightboxAt((currentIdx - 1 + images.length) % images.length);
       });
 
-      // タッチスワイプ
+      // ライトボックス内タッチスワイプ
       let touchStartX = 0;
       lightbox.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive: true});
       lightbox.addEventListener('touchend', e => {
