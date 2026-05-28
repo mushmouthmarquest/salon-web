@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>着物レンタル一覧</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: #faf8f5;
+      color: #2c2c2c;
+    }
+
+    /* ── ヘッダー ── */
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e8e0d8;
+      padding: 20px 16px 16px;
+      text-align: center;
+    }
+
+    .salon-label {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.25em;
+      color: #b8963e;
+      margin-bottom: 6px;
+    }
+
+    header h1 {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #2c2c2c;
+      letter-spacing: 0.12em;
+    }
+
+    /* ── カテゴリタブ ── */
+    .category-tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid #e8e0d8;
+      overflow-x: auto;
+      padding: 0 16px;
+    }
+
+    .tab {
+      flex-shrink: 0;
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #aaa;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab.active {
+      color: #8b1a2f;
+      border-bottom-color: #8b1a2f;
+    }
+
+    /* ── グリッド ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      padding: 20px 16px 32px;
+    }
+
+    /* ── カード ── */
+    .card {
+      background: #fff;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .card-img-wrap {
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card-img-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #b8963e, transparent);
+    }
+
+    .card img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .card:hover img,
+    .card:active img {
+      transform: scale(1.05);
+    }
+
+    .card-body {
+      padding: 10px 4px 8px;
+    }
+
+    .card-name {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #2c2c2c;
+      letter-spacing: 0.04em;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="salon-label">KIMONO RENTAL</div>
+    <h1>着物レンタル一覧</h1>
+  </header>
+
+  <div class="category-tabs" id="tabs"></div>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    function esc(s) {
+      return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    async function main() {
+      const res = await fetch('kimono.json');
+      const items = await res.json();
+
+      const CATEGORY_ORDER = [
+        '1.2歳','お宮参り','七五三女の子','七五三男の子','被布スタイル',
+        '訪問着・付け下げ・小紋','中振袖・振袖','留袖','卒業袴','羽織袴・着物','髪飾り','帯'
+      ];
+      const categories = CATEGORY_ORDER.filter(c => items.some(i => i.category === c));
+      const tabs = document.getElementById('tabs');
+      const grid = document.getElementById('grid');
+
+      let active = categories[0];
+
+      function render() {
+        tabs.innerHTML = '';
+        categories.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = 'tab' + (c === active ? ' active' : '');
+          btn.textContent = c;
+          btn.addEventListener('click', () => { active = c; render(); });
+          tabs.appendChild(btn);
+        });
+
+        const filtered = items.filter(i => i.category === active);
+        grid.innerHTML = filtered.map(item => `
+          <div class="card" data-id="${esc(item.id)}">
+            <div class="card-img-wrap">
+              <img src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy">
+            </div>
+            <div class="card-body">
+              <div class="card-name">${esc(item.name)}</div>
+            </div>
+          </div>
+        `).join('');
+
+        grid.querySelectorAll('.card').forEach(card => {
+          card.addEventListener('click', () => {
+            location.href = 'detail.html?id=' + encodeURIComponent(card.dataset.id);
+          });
+        });
+      }
+
+      render();
+    }
+
+    main();
+  </script>
+</body>
+</html>
