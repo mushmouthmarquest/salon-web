@@ -92,6 +92,7 @@
       z-index: 1000;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
 
     .lightbox.open {
@@ -141,7 +142,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(255,255,255,0.38);
+      background: rgba(255,255,255,0.6);
       opacity: 0;
       transition: opacity 0.15s;
       pointer-events: none;
@@ -394,9 +395,22 @@
       }
 
       function showLightboxAt(idx, dir = 1) {
+        lightboxImg.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+        lightboxImg.style.transform = `translateX(${dir * -60}px)`;
+        lightboxImg.style.opacity = '0';
+        setTimeout(() => {
+          lightboxImg.src = images[idx];
+          lightboxImg.alt = item.name;
+          lightboxImg.style.transition = 'none';
+          lightboxImg.style.transform = `translateX(${dir * 60}px)`;
+          lightboxImg.style.opacity = '0';
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            lightboxImg.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+            lightboxImg.style.transform = 'translateX(0)';
+            lightboxImg.style.opacity = '1';
+          }));
+        }, 250);
         switchMainImage(idx, dir);
-        lightboxImg.src = images[idx];
-        lightboxImg.alt = item.name;
         updateLightboxUI();
       }
 
