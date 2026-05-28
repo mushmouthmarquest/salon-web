@@ -186,6 +186,53 @@
       color: #999;
       font-family: 'Noto Serif JP', serif;
     }
+
+    /* ── タップヒント ── */
+    .zoom-hint {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      padding: 5px 10px;
+      border-radius: 20px;
+      pointer-events: none;
+    }
+
+    /* ── ライトボックス UI ── */
+    .lightbox-counter {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.85);
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      pointer-events: none;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      white-space: nowrap;
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.55);
+      font-size: 3.5rem;
+      cursor: pointer;
+      padding: 20px 12px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+
+    .lightbox-nav:hover { color: rgba(255,255,255,0.9); }
+    .lightbox-prev { left: 0; }
+    .lightbox-next { right: 0; }
+    .lightbox-nav.hidden { display: none; }
   </style>
 </head>
 <body>
@@ -198,7 +245,10 @@
 
   <div class="lightbox" id="lightbox">
     <button class="lightbox-close" id="lightboxClose">×</button>
+    <div class="lightbox-counter" id="lightboxCounter"></div>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev">‹</button>
     <img class="lightbox-img" id="lightboxImg" src="" alt="">
+    <button class="lightbox-nav lightbox-next" id="lightboxNext">›</button>
   </div>
 
   <script>
@@ -239,6 +289,7 @@
         <div class="detail-gallery">
           <div class="detail-main-wrap" id="mainWrap">
             <img class="detail-img" id="mainImg" src="${esc(images[0])}" alt="${esc(item.name)}">
+            <div class="zoom-hint">🔍 タップで拡大</div>
           </div>
           ${thumbsHtml}
         </div>
@@ -264,10 +315,21 @@
       // ライトボックス
       const lightbox = document.getElementById('lightbox');
       const lightboxImg = document.getElementById('lightboxImg');
+      const lightboxCounter = document.getElementById('lightboxCounter');
+      const lightboxPrev = document.getElementById('lightboxPrev');
+      const lightboxNext = document.getElementById('lightboxNext');
+
+      function updateLightboxUI() {
+        const multi = images.length > 1;
+        lightboxCounter.textContent = multi ? `${currentIdx + 1} / ${images.length}` : '';
+        lightboxPrev.classList.toggle('hidden', !multi);
+        lightboxNext.classList.toggle('hidden', !multi);
+      }
 
       function openLightbox() {
         lightboxImg.src = images[currentIdx];
         lightboxImg.alt = item.name;
+        updateLightboxUI();
         lightbox.classList.add('open');
         document.body.style.overflow = 'hidden';
       }
@@ -281,6 +343,7 @@
         currentIdx = idx;
         lightboxImg.src = images[currentIdx];
         lightboxImg.alt = item.name;
+        updateLightboxUI();
         document.querySelectorAll('.detail-thumb').forEach((t, i) => t.classList.toggle('active', i === currentIdx));
         document.getElementById('mainImg').src = images[currentIdx];
       }
@@ -288,6 +351,8 @@
       document.getElementById('mainWrap').addEventListener('click', openLightbox);
       document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
       lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+      lightboxPrev.addEventListener('click', e => { e.stopPropagation(); showLightboxAt((currentIdx - 1 + images.length) % images.length); });
+      lightboxNext.addEventListener('click', e => { e.stopPropagation(); showLightboxAt((currentIdx + 1) % images.length); });
 
       // キーボード操作
       document.addEventListener('keydown', e => {
