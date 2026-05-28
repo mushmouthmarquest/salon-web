@@ -143,7 +143,11 @@
       const res = await fetch('kimono.json');
       const items = await res.json();
 
-      const categories = [...new Set(items.map(i => i.category))];
+      const CATEGORY_ORDER = [
+        '1.2歳','お宮参り','七五三女の子','七五三男の子','被布スタイル',
+        '訪問着・付け下げ・小紋','中振袖・振袖','留袖','卒業袴','羽織袴・着物','髪飾り','帯'
+      ];
+      const categories = CATEGORY_ORDER.filter(c => items.some(i => i.category === c));
       const tabs = document.getElementById('tabs');
       const grid = document.getElementById('grid');
 
