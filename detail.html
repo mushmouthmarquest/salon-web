@@ -63,6 +63,7 @@
     .detail-main-wrap {
       position: relative;
       cursor: zoom-in;
+      overflow: hidden;
     }
 
     .detail-img {
@@ -127,16 +128,34 @@
 
     .detail-thumbnails::-webkit-scrollbar { display: none; }
 
-    .detail-thumb {
+    .thumb-wrap {
+      position: relative;
       flex: 0 0 64px;
       height: 64px;
-      object-fit: cover;
+      overflow: hidden;
       cursor: pointer;
-      transition: box-shadow 0.15s;
+      flex-shrink: 0;
     }
 
-    .detail-thumb.active {
-      box-shadow: inset 0 0 0 100px rgba(255,255,255,0.38);
+    .thumb-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.38);
+      opacity: 0;
+      transition: opacity 0.15s;
+      pointer-events: none;
+    }
+
+    .thumb-wrap.active::after {
+      opacity: 1;
+    }
+
+    .detail-thumb {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      display: block;
     }
 
     .detail-body {
@@ -290,7 +309,7 @@
       const thumbsHtml = images.length > 1
         ? `<div class="detail-thumbnails">
             ${images.map((src, i) =>
-              `<img class="detail-thumb${i === 0 ? ' active' : ''}" src="${esc(src)}" alt="${esc(item.name)} ${i+1}">`
+              `<div class="thumb-wrap${i === 0 ? ' active' : ''}"><img class="detail-thumb" src="${esc(src)}" alt="${esc(item.name)} ${i+1}"></div>`
             ).join('')}
            </div>`
         : '';
@@ -317,17 +336,34 @@
       let currentIdx = 0;
 
       // メイン画像・サムネイル・カウンターをまとめて更新
-      function switchMainImage(idx) {
+      function switchMainImage(idx, dir = 1) {
         currentIdx = idx;
-        document.getElementById('mainImg').src = images[currentIdx];
-        document.querySelectorAll('.detail-thumb').forEach((t, i) => t.classList.toggle('active', i === currentIdx));
+        const mainImg = document.getElementById('mainImg');
+        mainImg.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+        mainImg.style.transform = `translateX(${dir * -50}px)`;
+        mainImg.style.opacity = '0';
+        setTimeout(() => {
+          mainImg.src = images[currentIdx];
+          mainImg.style.transition = 'none';
+          mainImg.style.transform = `translateX(${dir * 50}px)`;
+          mainImg.style.opacity = '0';
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            mainImg.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+            mainImg.style.transform = 'translateX(0)';
+            mainImg.style.opacity = '1';
+          }));
+        }, 250);
+        document.querySelectorAll('.thumb-wrap').forEach((t, i) => t.classList.toggle('active', i === currentIdx));
         const counter = document.getElementById('mainCounter');
         if (counter) counter.textContent = `${currentIdx + 1} / ${images.length}`;
       }
 
       // サムネイルクリック
-      document.querySelectorAll('.detail-thumb').forEach((thumb, i) => {
-        thumb.addEventListener('click', () => switchMainImage(i));
+      document.querySelectorAll('.thumb-wrap').forEach((wrap, i) => {
+        wrap.addEventListener('click', () => {
+          if (i === currentIdx) return;
+          switchMainImage(i, i > currentIdx ? 1 : -1);
+        });
       });
 
       // ライトボックス
@@ -357,9 +393,9 @@
         document.body.style.overflow = '';
       }
 
-      function showLightboxAt(idx) {
-        switchMainImage(idx);
-        lightboxImg.src = images[currentIdx];
+      function showLightboxAt(idx, dir = 1) {
+        switchMainImage(idx, dir);
+        lightboxImg.src = images[idx];
         lightboxImg.alt = item.name;
         updateLightboxUI();
       }
@@ -376,7 +412,8 @@
         const dx = e.changedTouches[0].clientX - mainTouchX;
         if (Math.abs(dx) > 40 && images.length > 1) {
           mainDidSwipe = true;
-          switchMainImage(dx < 0 ? (currentIdx + 1) % images.length : (currentIdx - 1 + images.length) % images.length);
+          if (dx < 0) switchMainImage((currentIdx + 1) % images.length, 1);
+          else switchMainImage((currentIdx - 1 + images.length) % images.length, -1);
         }
       });
       mainWrap.addEventListener('click', () => {
@@ -386,15 +423,15 @@
 
       document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
       lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
-      lightboxPrev.addEventListener('click', e => { e.stopPropagation(); showLightboxAt((currentIdx - 1 + images.length) % images.length); });
-      lightboxNext.addEventListener('click', e => { e.stopPropagation(); showLightboxAt((currentIdx + 1) % images.length); });
+      lightboxPrev.addEventListener('click', e => { e.stopPropagation(); showLightboxAt((currentIdx - 1 + images.length) % images.length, -1); });
+      lightboxNext.addEventListener('click', e => { e.stopPropagation(); showLightboxAt((currentIdx + 1) % images.length, 1); });
 
       // キーボード操作
       document.addEventListener('keydown', e => {
         if (!lightbox.classList.contains('open')) return;
         if (e.key === 'Escape') closeLightbox();
-        if (e.key === 'ArrowRight') showLightboxAt((currentIdx + 1) % images.length);
-        if (e.key === 'ArrowLeft') showLightboxAt((currentIdx - 1 + images.length) % images.length);
+        if (e.key === 'ArrowRight') showLightboxAt((currentIdx + 1) % images.length, 1);
+        if (e.key === 'ArrowLeft') showLightboxAt((currentIdx - 1 + images.length) % images.length, -1);
       });
 
       // ライトボックス内タッチスワイプ
@@ -403,8 +440,8 @@
       lightbox.addEventListener('touchend', e => {
         const dx = e.changedTouches[0].clientX - touchStartX;
         if (Math.abs(dx) < 40) return;
-        if (dx < 0) showLightboxAt((currentIdx + 1) % images.length);
-        else showLightboxAt((currentIdx - 1 + images.length) % images.length);
+        if (dx < 0) showLightboxAt((currentIdx + 1) % images.length, 1);
+        else showLightboxAt((currentIdx - 1 + images.length) % images.length, -1);
       });
     }
 
