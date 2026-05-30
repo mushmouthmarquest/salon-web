@@ -166,7 +166,8 @@
       const tabs = document.getElementById('tabs');
       const grid = document.getElementById('grid');
 
-      let active = categories[0];
+      const urlCat = new URLSearchParams(location.search).get('category');
+      let active = (urlCat && categories.includes(urlCat)) ? urlCat : categories[0];
 
       function render() {
         tabs.innerHTML = '';

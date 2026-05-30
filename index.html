@@ -121,6 +121,66 @@
       display: block;
       margin: 0 auto;
     }
+
+    /* ── カテゴリグリッド ── */
+    .cat-section {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 0 48px;
+    }
+
+    .cat-heading {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.2em;
+      color: #2c2c2c;
+      padding: 16px 16px 12px;
+      border-top: 1px solid #e8e0d8;
+      border-bottom: 1px solid #e8e0d8;
+      margin-bottom: 16px;
+    }
+
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+    }
+
+    .cat-card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+      background: #e8e0d8;
+    }
+
+    .cat-card img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .cat-card:hover img,
+    .cat-card:active img {
+      transform: scale(1.05);
+    }
+
+    .cat-card-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      padding: 5px 4px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -146,5 +206,43 @@
     <div class="rental-heading">レンタルに関して</div>
     <img class="rental-img" src="images/top/rental-size.jpg" alt="サイズの見方">
   </div>
+
+  <div class="cat-section">
+    <div class="cat-heading">カテゴリから選ぶ</div>
+    <div class="cat-grid" id="cat-grid"></div>
+  </div>
+
+  <script>
+    (async () => {
+      const CATEGORY_ORDER = [
+        '1.2歳','お宮参り','七五三女の子','七五三男の子','被布スタイル',
+        '訪問着・付け下げ・小紋','中振袖・振袖','留袖','卒業袴','羽織袴・着物','髪飾り','帯'
+      ];
+      const items = await fetch('kimono.json').then(r => r.json());
+      const grid = document.getElementById('cat-grid');
+
+      CATEGORY_ORDER.forEach(cat => {
+        const item = items.find(i => i.category === cat);
+        if (!item) return;
+
+        const a = document.createElement('a');
+        a.className = 'cat-card';
+        a.href = 'list.html?category=' + encodeURIComponent(cat);
+
+        const img = document.createElement('img');
+        img.src = item.image;
+        img.alt = cat;
+        img.loading = 'lazy';
+
+        const label = document.createElement('div');
+        label.className = 'cat-card-label';
+        label.textContent = cat;
+
+        a.appendChild(img);
+        a.appendChild(label);
+        grid.appendChild(a);
+      });
+    })();
+  </script>
 </body>
 </html>
