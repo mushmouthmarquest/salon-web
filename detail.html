@@ -450,8 +450,14 @@
 
       // ライトボックス内タッチスワイプ
       let touchStartX = 0;
-      lightbox.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive: true});
+      let touchStartCount = 0;
+      lightbox.addEventListener('touchstart', e => {
+        touchStartCount = e.touches.length;
+        if (e.touches.length === 1) touchStartX = e.touches[0].clientX;
+      }, {passive: true});
       lightbox.addEventListener('touchend', e => {
+        // ピンチ操作（2本指以上）の後はスワイプ判定しない
+        if (touchStartCount > 1) return;
         const dx = e.changedTouches[0].clientX - touchStartX;
         if (Math.abs(dx) < 40) return;
         if (dx < 0) showLightboxAt((currentIdx + 1) % images.length, 1);
